@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinAgent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080c10;
+      --surface:   #0e1318;
+      --border:    #1d2731;
+      --accent:    #00d084;
+      --accent-dim:#00d08422;
+      --text:      #dce6ef;
+      --muted:     #5a7080;
+      --user-bg:   #111820;
+      --ai-bg:     #0a1016;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .logo {
+      width: 34px; height: 34px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: grid; place-items: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      color: #080c10;
+    }
+    header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .model-badge {
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--border);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-family: monospace;
+    }
+    #status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* ── Chat area ── */
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 0;
+      scroll-behavior: smooth;
+    }
+    #chat::-webkit-scrollbar { width: 4px; }
+    #chat::-webkit-scrollbar-track { background: transparent; }
+    #chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .msg-wrap {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .msg {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      animation: fadeUp 0.25s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      display: grid; place-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Syne', sans-serif;
+    }
+    .avatar.user { background: #1a2840; color: #6ab0f5; }
+    .avatar.ai   { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent)44; }
+
+    .bubble {
+      flex: 1;
+      background: var(--ai-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px 12px 12px 12px;
+      padding: 12px 16px;
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--text);
+    }
+    .msg.user .bubble {
+      background: var(--user-bg);
+      border-radius: 12px 4px 12px 12px;
+      color: #c8ddf0;
+    }
+    .bubble strong { color: #fff; }
+    .bubble code {
+      background: #1d2731;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: monospace;
+    }
+
+    /* ── Quick chips ── */
+    #chips {
+      max-width: 780px;
+      margin: 0 auto 16px;
+      padding: 0 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Input bar ── */
+    #input-area {
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      padding: 16px 20px;
+    }
+    #input-inner {
+      max-width: 780px;
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    #msg-input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      resize: none;
+      outline: none;
+      min-height: 46px;
+      max-height: 120px;
+      transition: border-color 0.15s;
+    }
+    #msg-input:focus { border-color: var(--accent); }
+    #msg-input::placeholder { color: var(--muted); }
+
+    #send-btn {
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      width: 46px; height: 46px;
+      cursor: pointer;
+      display: grid; place-items: center;
+      flex-shrink: 0;
+      transition: opacity 0.15s;
+    }
+    #send-btn:hover { opacity: 0.85; }
+    #send-btn svg { width: 18px; height: 18px; fill: #080c10; }
+
+    /* ── Config panel ── */
+    #config-bar {
+      max-width: 780px;
+      margin: 0 auto 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    #config-bar input, #config-bar select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      color: var(--text);
+      font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+    }
+    #config-bar input { flex: 1; min-width: 180px; }
+    #config-bar input:focus, #config-bar select:focus { border-color: var(--accent); }
+
+    /* Typing indicator */
+    .typing { display: flex; gap: 4px; padding: 6px 2px; }
+    .typing span {
+      width: 7px; height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+      40%            { transform: translateY(-6px); opacity: 1; }
+    }
+
+    /* Welcome */
+    #welcome {
+      max-width: 780px;
+      margin: 40px auto 0;
+      padding: 0 20px;
+      text-align: center;
+    }
+    #welcome h2 { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    #welcome p  { color: var(--muted); font-size: 14px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">FA</div>
+  <h1>FinAgent</h1>
+  <span id="status-dot"></span>
+  <span class="model-badge" id="model-label">llama-3.3-70b-versatile</span>
+</header>
+
+<div id="chat">
+  <div id="welcome">
+    <h2>Your AI Financial Analyst</h2>
+    <p>Ask about stocks, market news, fundamentals, technical indicators, and analyst forecasts.<br>
+       Powered by Groq · yfinance · Finlight — all free.</p>
+  </div>
+
+  <div id="messages"></div>
+
+  <div id="chips">
+    <div class="chip" onclick="sendChip(this)">How is Apple stock doing?</div>
+    <div class="chip" onclick="sendChip(this)">TSLA fundamentals</div>
+    <div class="chip" onclick="sendChip(this)">Technicals for RELIANCE.NS</div>
+    <div class="chip" onclick="sendChip(this)">Latest Nvidia news</div>
+    <div class="chip" onclick="sendChip(this)">MSFT analyst forecast</div>
+  </div>
+</div>
+
+<div id="input-area">
+  <div id="config-bar">
+    <input id="api-url"  placeholder="API URL (default: http://localhost:8000)" value="http://localhost:8000" />
+  </div>
+  <div id="input-inner">
+    <textarea id="msg-input" placeholder="Ask about stocks, news, or markets..." rows="1"></textarea>
+    <button id="send-btn" onclick="sendMessage()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  const messagesEl = document.getElementById("messages");
+  const inputEl    = document.getElementById("msg-input");
+  const welcomeEl  = document.getElementById("welcome");
+  const chipsEl    = document.getElementById("chips");
+  const modelLabel = document.getElementById("model-label");
+
+  let history = [];
+  let busy    = false;
+
+  // Auto-resize textarea
+  inputEl.addEventListener("input", () => {
+    inputEl.style.height = "auto";
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + "px";
+  });
+
+  inputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+  // Check API health on load
+  window.addEventListener("load", async () => {
+    const base = document.getElementById("api-url").value.trim();
+    try {
+      const r = await fetch(`${base}/health`);
+      const d = await r.json();
+      modelLabel.textContent = d.model || "connected";
+      document.getElementById("status-dot").style.background = "#00d084";
+    } catch {
+      document.getElementById("status-dot").style.background = "#e74c3c";
+      modelLabel.textContent = "API offline";
+    }
+  });
+
+  function sendChip(el) {
+    inputEl.value = el.textContent;
+    sendMessage();
+  }
+
+  function appendMsg(role, content) {
+    const wrap = document.createElement("div");
+    wrap.className = "msg-wrap";
+
+    const msg = document.createElement("div");
+    msg.className = `msg ${role}`;
+
+    const avatar = document.createElement("div");
+    avatar.className = `avatar ${role}`;
+    avatar.textContent = role === "user" ? "U" : "FA";
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.innerHTML = mdToHtml(content);
+
+    msg.appendChild(avatar);
+    msg.appendChild(bubble);
+    wrap.appendChild(msg);
+    messagesEl.appendChild(wrap);
+    messagesEl.scrollIntoView({ block: "end" });
+    return bubble;
+  }
+
+  function appendTyping() {
+    const wrap = document.createElement("div");
+    wrap.className = "msg-wrap";
+    wrap.id = "typing-wrap";
+
+    const msg = document.createElement("div");
+    msg.className = "msg ai";
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar ai";
+    avatar.textContent = "FA";
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.innerHTML = `<div class="typing"><span></span><span></span><span></span></div>`;
+
+    msg.appendChild(avatar);
+    msg.appendChild(bubble);
+    wrap.appendChild(msg);
+    messagesEl.appendChild(wrap);
+    wrap.scrollIntoView({ block: "end" });
+  }
+
+  function removeTyping() {
+    const el = document.getElementById("typing-wrap");
+    if (el) el.remove();
+  }
+
+  // Very lightweight markdown renderer
+  function mdToHtml(text) {
+    return text
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/📈|📉|↔️|✅|⚠️|•/g, m => m)
+      .replace(/\n/g, "<br>");
+  }
+
+  async function sendMessage() {
+    if (busy) return;
+    const text = inputEl.value.trim();
+    if (!text) return;
+
+    welcomeEl.style.display = "none";
+    chipsEl.style.display   = "none";
+
+    inputEl.value = "";
+    inputEl.style.height = "auto";
+
+    appendMsg("user", text);
+    history.push({ role: "user", content: text });
+
+    busy = true;
+    appendTyping();
+
+    const base = document.getElementById("api-url").value.trim() || "http://localhost:8000";
+
+    try {
+      const resp = await fetch(`${base}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: text,
+          history: history.slice(0, -1)   // exclude the current message
+        })
+      });
+
+      removeTyping();
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+        appendMsg("ai", `⚠️ API Error: ${err.detail || resp.statusText}`);
+      } else {
+        const data = await resp.json();
+        appendMsg("ai", data.response);
+        history.push({ role: "assistant", content: data.response });
+      }
+    } catch (e) {
+      removeTyping();
+      appendMsg("ai", `⚠️ Could not reach the API at **${base}**.\nMake sure the server is running:\n\`uvicorn api.server:app --reload --port 8000\``);
+    }
+
+    busy = false;
+  }
+</script>
+</body>
+</html>
