@@ -9,8 +9,11 @@ class Config:
     GROQ_API_KEY: str       = os.environ.get("GROQ_API_KEY", "")
     FINLIGHT_API_KEY: str   = os.environ.get("FINLIGHT_API_KEY", "")
 
-    # ── Optional ──────────────────────────────────────────────────────────────
-#     JINA_API_KEY: Optional[str] = os.environ.get("JINA_API_KEY", None)
+    JINA_API_KEY: Optional[str] = os.environ.get("JINA_API_KEY", None)
+
+   
+
+
 
    
     LANGSMITH_TRACING: bool  = os.environ.get("LANGSMITH_TRACING", "false").lower() == "true"
